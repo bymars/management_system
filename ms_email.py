@@ -9,13 +9,19 @@ from email.mime.multipart import MIMEBase, MIMEMultipart
 from email.header import Header
 from email.utils import parseaddr, formataddr
 
+from socks_imap import Socks_IMAP4_SSL
+from socks_smtp import Socks_SMTP_SSL
+
 DEFAULT_IMAP_URL = 'imap.gmail.com'
 DEFAULT_SMTP_URL = 'smtp.gmail.com'
-DEFAULT_SMTP_PORT = 465
 
 class MailReceiver(object):
-  def __init__(self, username, password, imap_url = DEFAULT_IMAP_URL):
-    self.imap = imaplib.IMAP4_SSL(imap_url)
+  def __init__(self, username, password,
+               imap_url = DEFAULT_IMAP_URL,
+	       proxy_addr=None,
+	       proxy_port=None,
+	       proxy_type="socks5"):
+    self.imap = Socks_IMAP4_SSL(imap_url, proxy_addr=proxy_addr, proxy_port=proxy_port, proxy_type=proxy_type)
     self.imap.login(username, password)
 
   def get_message_from_uid(self, uid):
@@ -47,9 +53,12 @@ class MailReceiver(object):
         return mail
 
 class MailSender(object):
-  def __init__(self, username, password, smtp_url = DEFAULT_SMTP_URL, port = DEFAULT_SMTP_PORT):
-    self.smtp = smtplib.SMTP_SSL()
-    self.smtp.connect(smtp_url, port)
+  def __init__(self, username, password,
+               smtp_url = DEFAULT_SMTP_URL,
+	       proxy_addr=None,
+	       proxy_port=None,
+	       proxy_type="socks5"):
+    self.smtp = Socks_SMTP_SSL(smtp_url, proxy_addr=proxy_addr, proxy_port=proxy_port, proxy_type=proxy_type)
     self.smtp.login(username, password)
 
   def _format_addr(self, s):
