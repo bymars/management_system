@@ -21,7 +21,6 @@ class Socks_SMTP(SMTP):
     self.rdns = rdns
     self.username = username
     self.password = password
-    print('proxy_type:' + proxy_type)
     self.proxy_type = Socks_SMTP.PROXY_TYPES[proxy_type.lower()]
 
     SMTP.__init__(self, host, port)
