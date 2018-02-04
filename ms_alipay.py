@@ -8,17 +8,20 @@ class AlipayAcct(object):
 
   LOGIN_URL = 'https://auth.alipay.com/login/index.htm'
   BAO_URL = 'https://bao.alipay.com/yeb/asset.htm'
+  SECURITY_URL_SUFFIX = 'checkSecurity.htm'
   LOGIN_SHOW_SEL = 'li[data-status=show_login]'
   LOGIN_USER_SEL = '#J-input-user'
   LOGIN_PASS_SEL = '#password_rsainput'
   LOGIN_CODE_SEL = '#J-input-checkcode'
   LOGIN_BTN_SEL = '#J-login-btn'
+  SECURITY_INPUT_SEL = '#riskackcode'
+  SECURITY_BTN_SEL = 'input[seed=JSubmit-btn]'
   BALANCE_SEL = '.eye-val'
   QR_SEL = '.qrcode-cnt'
 
   def __init__(self, username, password):
     Display(visible = 0, size = (1920, 1080)).start()
-    self.browser = webdriver.Firefox()
+    self.browser = webdriver.Chrome()
     self.username = username
     self.password = password
 
@@ -55,6 +58,26 @@ class AlipayAcct(object):
     self.input_to_element(AlipayAcct.LOGIN_USER_SEL, self.username)
     self.input_to_element(AlipayAcct.LOGIN_PASS_SEL, self.password)
     self.click_element(AlipayAcct.LOGIN_BTN_SEL)
+    if self.browser.current_url == AlipayAcct.LOGIN_URL:
+      self.save_screenshot('login.png')
+      return ('login', 'login.png')
+    else:
+      return ('succ', '')
+
+  def login_with_checkcode(self, checkcode):
+    self.input_to_element(AlipayAcct.LOGIN_USER_SEL, self.username)
+    self.input_to_element(AlipayAcct.LOGIN_PASS_SEL, self.password)
+    self.input_to_element(AlipayAcct.LOGIN_CODE_SEL, checkcode)
+    self.click_element(AlipayAcct.LOGIN_BTN_SEL)
+    if self.browser.current_url.endswith(AlipayAcct.SECURITY_URL_SUFFIX):
+      self.save_screenshot('security.png')
+      return ('security', 'security.png')
+    else:
+      return ('succ', '')
+
+  def login_with_security(self, security):
+    self.input_to_element(AlipayAcct.SECURITY_INPUT_SEL, security)
+    self.click_element(AlipayAcct.SECURITY_BTN_SEL)
 
   def get_balance(self):
     self.get_page(AlipayAcct.BAO_URL)
@@ -62,10 +85,10 @@ class AlipayAcct(object):
       try:
         result = ('succ', self.get_element_text(AlipayAcct.BALANCE_SEL))
       except NoSuchElementException as e:
-        self.save_ele_screenshot(AlipayAcct.QR_SEL, 'qr.png')
+        self.save_screenshot('qr.png')
         result = ('qrcode', 'qr.png')
     else:
-      self.save_screenshot('login.png')
-      result = ('login', 'login.png')
+      self.save_screenshot('error.png')
+      result = ('error', 'error.png')
     return result
 
